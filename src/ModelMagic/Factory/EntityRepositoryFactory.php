@@ -29,7 +29,7 @@ class EntityRepositoryFactory
         EntityManagerInterface $entityManager,
         ServiceLocatorInterface $serviceLocator
     ) {
-        if (defined($className::REPOSITORY_CLASS)) {
+        if (defined("$className::REPOSITORY_CLASS")) {
             $repository = $className::REPOSITORY_CLASS;
             $repository = new $repository($className);
         } else {

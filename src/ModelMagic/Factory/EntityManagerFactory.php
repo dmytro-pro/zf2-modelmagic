@@ -5,7 +5,7 @@
  * Time: 10:57
  */
 
-namespace ModelMageic\Factory;
+namespace ModelMagic\Factory;
 
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
