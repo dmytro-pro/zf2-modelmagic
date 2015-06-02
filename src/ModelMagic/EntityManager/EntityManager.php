@@ -1,4 +1,9 @@
 <?php
+/**
+ * Created by Dmitry Prokopenko <hellsigner@gmail.com>
+ * Date: 02.06.15
+ * Time: 10:56
+ */
 
 namespace ModelMagic\EntityManager;
 
@@ -9,11 +14,6 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Doctrine\DBAL\Connection;
 
-/**
- * Created by Dmitry Prokopenko <hellsigner@gmail.com>
- * Date: 02.06.15
- * Time: 10:56
- */
 class EntityManager implements ServiceLocatorAwareInterface, EntityManagerInterface
 {
     /**
@@ -61,9 +61,9 @@ class EntityManager implements ServiceLocatorAwareInterface, EntityManagerInterf
      * @param $className
      * @return object
      */
-    public function newEntity($className)
+    public function newEntity($className, $data = null)
     {
-        return EntityFactory::createEntity($className, $this->serviceLocator);
+        return EntityFactory::createEntity($this->serviceLocator, $className, $data);
     }
 
     /**
@@ -82,6 +82,10 @@ class EntityManager implements ServiceLocatorAwareInterface, EntityManagerInterf
             if (empty($dbConfig['dbname']) && !empty($dbConfig['database'])) {
                 $dbConfig['dbname'] = $dbConfig['database'];
             }
+            if (empty($dbConfig['user']) && !empty($dbConfig['username'])) {
+                $dbConfig['user'] = $dbConfig['username'];
+            }
+            (!empty($dbConfig['driver'])) && ($dbConfig['driver'] = strtolower($dbConfig['driver']));
         }
         return DriverManager::getConnection($dbConfig);
     }

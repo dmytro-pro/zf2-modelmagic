@@ -7,6 +7,7 @@
 
 namespace ModelMagic\Repository;
 
+use Doctrine\DBAL\Connection;
 use ModelMagic\EntityManager\EntityManagerInterface;
 use ModelMagic\Exception\InvalidArgumentException;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
@@ -19,15 +20,17 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     protected $table;
 
-    /**
-     * @var string
-     */
     protected $entityClassName;
 
     /**
      * @var ServiceLocatorInterface
      */
     protected $serviceLocator;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
 
     /**
      * @param $entityClassName
@@ -38,7 +41,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         if (!class_exists($entityClassName)) {
             throw new InvalidArgumentException('Invalid classname provided.');
         }
-        if (!defined($entityClassName::TABLE)) {
+        if (!defined("$entityClassName::TABLE")) {
             throw new InvalidArgumentException('TABLE constant for the entity class must be defined');
         }
         $this->entityClassName = $entityClassName;
@@ -46,14 +49,43 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         $this->entityManager = $entityManager;
     }
 
-    public function getAll($where = null)
+
+    /**
+     * Retrieve a set of records.
+     *
+     * @param null $where
+     * @param array $params
+     * @param array $types
+     * @return array
+     */
+    public function getAll($where = null, array $params = array(), array $types = array())
     {
-        // TODO: Implement getAll() method.
+        $qb = $this->createQueryBuilder()->select('*')->from($this->table);
+        if ($where) {
+            $qb->where($where);
+            (!empty($params)) && ($qb->setParameters($params, $types));
+        }
+        return $this->mapResultSet($qb->execute()->fetchAll(\PDO::FETCH_ASSOC));
     }
 
+    /**
+     * Retrieve a single record by primary key.
+     *
+     * @param $id
+     * @return mixed
+     */
     public function get($id)
     {
-        // TODO: Implement get() method.
+        $pk = 'id';
+        $className = $this->entityClassName;
+        if (defined("$className::PRIMARY_COLUMN")) {
+            $pk = $className::PRIMARY_COLUMN;
+        }
+        $qb = $this->createQueryBuilder()
+            ->select('*')
+            ->from($this->table)
+            ->where($pk . ' = ?')->setParameters(array($id));
+        return $this->mapResult($qb->execute()->fetch(\PDO::FETCH_ASSOC));
     }
 
     public function insert($data, $ignore = false)
@@ -71,14 +103,59 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         // TODO: Implement update() method.
     }
 
-    public function createQueryBuilder()
+    /**
+     * Map resultSet as an array of entities.
+     *
+     * @param $resultSet
+     * @return array
+     */
+    public function mapResultSet($resultSet)
     {
-        // TODO: Implement createQueryBuilder() method.
+        $mapped = array();
+        $entityPrototype = $this->getEntityManager()->newEntity($this->entityClassName);
+        foreach ($resultSet as $result) {
+            $item = clone $entityPrototype;
+            $item->setData($result);
+            $mapped[] = $item;
+        }
+        return $mapped;
     }
 
+    /**
+     * Map single entity.
+     *
+     * @param $result
+     * @return mixed
+     */
+    public function mapResult($result)
+    {
+        $entity = $this->getEntityManager()->newEntity($this->entityClassName);
+        $entity->setData($result);
+        return $entity;
+    }
+
+    /**
+     * @return \Doctrine\DBAL\Query\QueryBuilder
+     */
+    public function createQueryBuilder()
+    {
+        return $this->getConnection()->createQueryBuilder();
+    }
+
+    /**
+     * @return EntityManagerInterface
+     */
     public function getEntityManager()
     {
         return $this->entityManager;
+    }
+
+    /**
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->entityManager->getConnection();
     }
 
     /**
