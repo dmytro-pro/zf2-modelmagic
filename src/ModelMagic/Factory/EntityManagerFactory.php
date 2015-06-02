@@ -8,6 +8,7 @@
 namespace ModelMagic\Factory;
 
 use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use ModelMagic\EntityManager\EntityManager;
 
@@ -22,7 +23,9 @@ class EntityManagerFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $em = new EntityManager;
-        $em->setServiceLocator($serviceLocator);
+        if ($em instanceof ServiceLocatorAwareInterface) {
+            $em->setServiceLocator($serviceLocator);
+        }
         $em->init();
         return $em;
     }
