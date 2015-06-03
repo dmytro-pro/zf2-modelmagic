@@ -71,15 +71,14 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      *
      * @param null $where
      * @param array $params
-     * @param array $types
      * @return array
      */
-    public function getAll($where = null, array $params = array(), array $types = array())
+    public function getAll($where = null, array $params = array())
     {
         $qb = $this->createQueryBuilder()->select('*')->from($this->table);
         if ($where) {
             $qb->where($where);
-            (!empty($params)) && ($qb->setParameters($params, $types));
+            (!empty($params)) && ($qb->setParameters($params));
         }
         return $this->mapResultSet($qb->execute()->fetchAll(\PDO::FETCH_ASSOC));
     }
@@ -176,24 +175,57 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         return $qb->execute();
     }
 
-    public function getOne($where)
+    /**
+     * @param $where
+     * @param array $params
+     * @return object
+     */
+    public function getOne($where, array $params = array())
     {
-        // TODO: Implement getOne() method.
+        $qb = $this->createQueryBuilder()->select('*')->from($this->table)->where($where);
+        (!empty($params)) && ($qb->setParameters($params));
+        return $this->mapResult($qb->execute()->fetch(\PDO::FETCH_ASSOC));
     }
 
-    public function updateWhere($data, $where)
+    /**
+     * @param $data
+     * @param $where
+     * @param array $params
+     * @return \Doctrine\DBAL\Driver\Statement|int
+     */
+    public function updateWhere($data, $where, array $params = array())
     {
-        // TODO: Implement updateWhere() method.
+        $qb = $this->createQueryBuilder()->update($this->table);
+        foreach ($data as $field => $value) {
+            $qb->set($field, $value);
+        }
+        $qb->where($where);
+        (!empty($params)) && ($qb->setParameters($params));
+        return $qb->execute();
     }
 
+    /**
+     * @param $id
+     * @return int
+     */
     public function delete($id)
     {
-        // TODO: Implement delete() method.
+        $qb = $this->createQueryBuilder()->delete($this->table);
+        $qb->where($this->getPrimaryColumn() . ' = ' . (int) $id);
+        return $qb->execute();
     }
 
-    public function deleteWhere($where)
+    /**
+     * @param $where
+     * @param array $params
+     * @return int
+     */
+    public function deleteWhere($where, array $params = array())
     {
-        // TODO: Implement deleteWhere() method.
+        $qb = $this->createQueryBuilder()->delete($this->table);
+        $qb->where($where);
+        (!empty($params)) && ($qb->setParameters($params));
+        return $qb->execute();
     }
 
     /**
