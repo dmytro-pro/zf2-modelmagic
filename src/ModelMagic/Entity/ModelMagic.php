@@ -9,10 +9,44 @@ namespace ModelMagic\Entity;
 
 use Traversable;
 
-class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Serializable
+class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Serializable, ModelMagicInterface
 {
+    /**
+     * Table name for this entity. Must be overridden, if EntityRepository .
+     */
+    const TABLE = null;
+
+    /**
+     * Primary column
+     */
+    const PRIMARY_COLUMN = 'id';
+
     /** @var array */
     protected $fields = array();
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function fromArray(array $data)
+    {
+        foreach ($data as $key => $val) {
+            $this->set($key, $val);
+        }
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        $data = array();
+        foreach ($this->fields as $field) {
+            $data[$field] = $this->get($field);
+        }
+        return $data;
+    }
 
     /**
      * @param string $key
