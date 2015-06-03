@@ -20,7 +20,7 @@ class ModelMagic implements
     /**
      * Table name for this entity. Must be overridden, if EntityRepository for this entity will be used.
      */
-    const TABLE = null;
+    const TABLE_NAME = null;
 
     /**
      * Primary column

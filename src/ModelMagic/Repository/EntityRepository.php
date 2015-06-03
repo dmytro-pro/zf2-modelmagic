@@ -41,13 +41,13 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         if (!class_exists($entityClassName)) {
             throw new InvalidArgumentException('Invalid classname provided.');
         }
-        if (!defined("$entityClassName::TABLE" || empty($entityClassName::TABLE))) {
+        if (!defined("$entityClassName::TABLE_NAME") || empty($entityClassName::TABLE_NAME)) {
             throw new InvalidArgumentException(
-                'TABLE constant for the entity class must be defined, if you want to create EntityRepository for it'
+                'TABLE_NAME constant for the entity class must be defined, if you want to create EntityRepository for it'
             );
         }
         $this->entityClassName = $entityClassName;
-        $this->table = $entityClassName::TABLE;
+        $this->table = $entityClassName::TABLE_NAME;
         $this->entityManager = $entityManager;
     }
 
