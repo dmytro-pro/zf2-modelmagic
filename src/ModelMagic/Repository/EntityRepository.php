@@ -49,6 +49,20 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         $this->entityManager = $entityManager;
     }
 
+    /**
+     * Returns Primary Key column name.
+     *
+     * @return string
+     */
+    public function getPrimaryColumn()
+    {
+        $pk = 'id';
+        $className = $this->entityClassName;
+        if (defined("$className::PRIMARY_COLUMN")) {
+            $pk = $className::PRIMARY_COLUMN;
+        }
+        return $pk;
+    }
 
     /**
      * Retrieve a set of records.
@@ -70,21 +84,17 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
 
     /**
      * Retrieve a single record by primary key.
+     * Expects, what only one primary column is defined for table.
      *
      * @param $id
      * @return mixed
      */
     public function get($id)
     {
-        $pk = 'id';
-        $className = $this->entityClassName;
-        if (defined("$className::PRIMARY_COLUMN")) {
-            $pk = $className::PRIMARY_COLUMN;
-        }
         $qb = $this->createQueryBuilder()
             ->select('*')
             ->from($this->table)
-            ->where($pk . ' = ?')->setParameters(array($id));
+            ->where($this->getPrimaryColumn() . ' = ?')->setParameters(array($id));
         return $this->mapResult($qb->execute()->fetch(\PDO::FETCH_ASSOC));
     }
 
@@ -146,9 +156,22 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         return $stat->execute($values);
     }
 
+    /**
+     * Implements UPDATE operation.
+     * Expects, what only one primary column is defined for table.
+     *
+     * @param $id
+     * @param $data
+     * @return int
+     */
     public function update($id, $data)
     {
-        // TODO: Implement update() method.
+        $qb = $this->createQueryBuilder()->update($this->table);
+        foreach ($data as $field => $value) {
+            $qb->set($field, $value);
+        }
+        $qb->where($this->getPrimaryColumn() . ' = ' . (int) $id);
+        return $qb->execute();
     }
 
     /**
