@@ -175,6 +175,16 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
     }
 
     /**
+     * Retrieves lastInsertId for current connection.
+     *
+     * @return string
+     */
+    public function lastInsertId()
+    {
+        return $this->getConnection()->lastInsertId();
+    }
+
+    /**
      * Map resultSet as an array of entities.
      *
      * @param $resultSet
