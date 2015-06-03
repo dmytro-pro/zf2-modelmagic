@@ -88,9 +88,35 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         return $this->mapResult($qb->execute()->fetch(\PDO::FETCH_ASSOC));
     }
 
+    /**
+     * Implements INSERT and INSERT IGNORE operations.
+     * The data must be an associative array of 'key' => 'value' items;
+     * The key items must correlate with corresponding table field names.
+     *
+     * @param $data
+     * @param bool $ignore
+     * @return bool
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function insert($data, $ignore = false)
     {
-        // TODO: Implement insert() method.
+        $keys = array_keys($data);
+        $values = array_values($data);
+        $markers = array();
+        foreach ($values as $_) {
+            $markers[] = '?';
+        }
+        $sql = 'INSERT';
+        if ($ignore) {
+            $sql .= ' IGNORE';
+        }
+        $sql .=' INTO '
+            .$this->table
+            .'(' . join($keys, ',') . ')'
+            .'VALUES '
+            .'(' . join($markers, ',') . ')';
+        $stat = $this->getConnection()->prepare($sql);
+        return $stat->execute($values);
     }
 
     public function replace($data)
