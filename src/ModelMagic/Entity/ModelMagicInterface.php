@@ -9,7 +9,7 @@ namespace ModelMagic\Entity;
 
 interface ModelMagicInterface
 {
-    public function get();
+    public function get($key);
     public function set($key, $value);
     public function fromArray(array $data);
     public function toArray();

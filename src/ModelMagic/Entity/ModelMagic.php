@@ -9,10 +9,16 @@ namespace ModelMagic\Entity;
 
 use Traversable;
 
-class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Serializable, ModelMagicInterface
+class ModelMagic implements
+    \ArrayAccess,
+    \Countable,
+    \IteratorAggregate,
+    \Serializable,
+    ModelMagicInterface,
+    JsonSerializableInterface
 {
     /**
-     * Table name for this entity. Must be overridden, if EntityRepository .
+     * Table name for this entity. Must be overridden, if EntityRepository for this entity will be used.
      */
     const TABLE = null;
 
@@ -37,6 +43,24 @@ class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Seria
     }
 
     /**
+     * @param $json
+     * @return $this
+     */
+    public function fromJSON($json)
+    {
+        $decoded = json_decode($json, true);
+        return $this->fromArray($decoded);
+    }
+
+    /**
+     * @return string
+     */
+    public function toJSON()
+    {
+        return json_encode($this->toArray());
+    }
+
+    /**
      * @return array
      */
     public function toArray()
@@ -46,6 +70,27 @@ class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Seria
             $data[$field] = $this->get($field);
         }
         return $data;
+    }
+
+    /**
+     * Alias for ZF2 ArraySerializable interface[1].
+     *
+     * @param $data
+     * @return ModelMagic
+     */
+    public function exchangeArray($data)
+    {
+        return $this->fromArray($data);
+    }
+
+    /**
+     * Alias for ZF2 ArraySerializable interface[2].
+     *
+     * @return array
+     */
+    public function getArrayCopy()
+    {
+        return $this->toArray();
     }
 
     /**
