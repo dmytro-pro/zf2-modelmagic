@@ -37,4 +37,8 @@ class ServiceLocatorAwareObjectMagic extends ModelMagic implements ServiceLocato
         return $this->serviceLocator;
     }
 
+    public function __debuginfo()
+    {
+        return array($this->fields, 'serviceLocator' => '[Object]');
+    }
 }

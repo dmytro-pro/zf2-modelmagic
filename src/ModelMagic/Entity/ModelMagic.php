@@ -191,4 +191,9 @@ class ModelMagic implements \ArrayAccess, \Countable, \IteratorAggregate, \Seria
     {
         $this->fields = unserialize($serialized);
     }
+
+    public function __debuginfo()
+    {
+        return array($this->fields);
+    }
 }
