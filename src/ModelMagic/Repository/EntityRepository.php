@@ -147,7 +147,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
             $markers[] = '?';
         }
         $sql = 'REPLACE'
-            .=' INTO '
+            . ' INTO '
             .$this->table
             .'(' . join($keys, ',') . ')'
             .'VALUES '
