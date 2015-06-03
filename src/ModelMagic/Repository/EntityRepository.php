@@ -119,9 +119,31 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         return $stat->execute($values);
     }
 
+    /**
+     * Implements REPLACE operation. The usage is similar to $this->insert() method.
+     * https://dev.mysql.com/doc/refman/5.0/en/replace.html
+     *
+     * @see $this->insert()
+     * @param $data
+     * @return bool
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function replace($data)
     {
-        // TODO: Implement replace() method.
+        $keys = array_keys($data);
+        $values = array_values($data);
+        $markers = array();
+        foreach ($values as $_) {
+            $markers[] = '?';
+        }
+        $sql = 'REPLACE'
+            .=' INTO '
+            .$this->table
+            .'(' . join($keys, ',') . ')'
+            .'VALUES '
+            .'(' . join($markers, ',') . ')';
+        $stat = $this->getConnection()->prepare($sql);
+        return $stat->execute($values);
     }
 
     public function update($id, $data)
