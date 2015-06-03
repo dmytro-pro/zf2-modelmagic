@@ -174,6 +174,26 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
         return $qb->execute();
     }
 
+    public function getOne($where)
+    {
+        // TODO: Implement getOne() method.
+    }
+
+    public function updateWhere($data, $where)
+    {
+        // TODO: Implement updateWhere() method.
+    }
+
+    public function delete($id)
+    {
+        // TODO: Implement delete() method.
+    }
+
+    public function deleteWhere($where)
+    {
+        // TODO: Implement deleteWhere() method.
+    }
+
     /**
      * Retrieves lastInsertId for current connection.
      *

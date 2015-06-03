@@ -14,8 +14,12 @@ interface EntityRepositoryInterface
     public function __construct($entityClassName, EntityManagerInterface $entityManager);
     public function getAll($where = null);
     public function get($id);
+    public function getOne($where);
     public function insert($data, $ignore = false);
     public function update($id, $data);
+    public function updateWhere($data, $where);
+    public function delete($id);
+    public function deleteWhere($where);
     public function createQueryBuilder();
     public function getEntityManager();
 }
