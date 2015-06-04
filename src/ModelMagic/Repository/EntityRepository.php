@@ -8,6 +8,7 @@
 namespace ModelMagic\Repository;
 
 use Doctrine\DBAL\Connection;
+use ModelMagic\Entity\ModelMagicInterface;
 use ModelMagic\EntityManager\EntityManagerInterface;
 use ModelMagic\Exception\InvalidArgumentException;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
@@ -167,12 +168,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function update($id, $data)
     {
-        $qb = $this->createQueryBuilder()->update($this->table);
-        foreach ($data as $field => $value) {
-            $qb->set($field, $value);
-        }
-        $qb->where($this->getPrimaryColumn() . ' = ' . (int) $id);
-        return $qb->execute();
+        return $this->getConnection()->update($this->table, $data, array($this->getPrimaryColumn() => $id));
     }
 
     /**
@@ -197,9 +193,12 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
     {
         $qb = $this->createQueryBuilder()->update($this->table);
         foreach ($data as $field => $value) {
-            $qb->set($field, $value);
+            $qb->set($this->table . '.' . $field, '?');
         }
         $qb->where($where);
+        $paramsSet = array_values($data);
+        $paramsWhere = $params;
+        $params = array_merge($paramsSet, $paramsWhere);
         (!empty($params)) && ($qb->setParameters($params));
         return $qb->execute();
     }
@@ -210,9 +209,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function delete($id)
     {
-        $qb = $this->createQueryBuilder()->delete($this->table);
-        $qb->where($this->getPrimaryColumn() . ' = ' . (int) $id);
-        return $qb->execute();
+        return $this->getConnection()->delete($this->table, array($this->getPrimaryColumn() => $id));
     }
 
     /**
@@ -222,8 +219,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function deleteWhere($where, array $params = array())
     {
-        $qb = $this->createQueryBuilder()->delete($this->table);
-        $qb->where($where);
+        $qb = $this->createQueryBuilder()->delete($this->table)->where($where);
         (!empty($params)) && ($qb->setParameters($params));
         return $qb->execute();
     }
@@ -260,7 +256,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      * Map single entity.
      *
      * @param $result
-     * @return mixed
+     * @return ModelMagicInterface
      */
     public function mapResult($result)
     {
