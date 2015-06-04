@@ -59,9 +59,10 @@ class EntityManager implements ServiceLocatorAwareInterface, EntityManagerInterf
 
     /**
      * @param $className
+     * @param array $data
      * @return object
      */
-    public function newEntity($className, $data = null)
+    public function newEntity($className, $data = array())
     {
         return EntityFactory::createEntity($this->serviceLocator, $className, $data);
     }

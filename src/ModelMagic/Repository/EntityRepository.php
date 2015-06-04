@@ -243,10 +243,8 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
     public function mapResultSet($resultSet)
     {
         $mapped = array();
-        $entityPrototype = $this->getEntityManager()->newEntity($this->entityClassName);
         foreach ($resultSet as $result) {
-            $item = clone $entityPrototype;
-            $item->setData($result);
+            $item = $this->getEntityManager()->newEntity($this->entityClassName, $result);
             $mapped[] = $item;
         }
         return $mapped;
@@ -260,8 +258,7 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function mapResult($result)
     {
-        $entity = $this->getEntityManager()->newEntity($this->entityClassName);
-        $entity->setData($result);
+        $entity = $this->getEntityManager()->newEntity($this->entityClassName, $result);
         return $entity;
     }
 
