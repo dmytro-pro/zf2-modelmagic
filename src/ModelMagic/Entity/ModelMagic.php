@@ -27,8 +27,39 @@ class ModelMagic implements
      */
     const PRIMARY_COLUMN = 'id';
 
-    /** @var array */
+    /**
+     * Array of column names, protected for writing in ORM mode. Example: primary key columns.
+     *
+     * @var array
+     */
+    protected $protectWriteColumns = array();
+
+    /**
+     * Array of column names, protected for reading in ORM mode. Example: password hash column.
+     *
+     * @var array
+     */
+    protected $protectReadColumns = array();
+
+    /**
+     * Internal storage.
+     *
+     * @var array
+     */
     protected $fields = array();
+
+    /**
+     * Flag for internal usage.
+     *
+     * @var bool
+     */
+    protected $isNew = true;
+
+    public function __construct(array $data)
+    {
+        $this->fromArray($data);
+        $this->isNew = false;
+    }
 
     /**
      * @param array $data
@@ -37,7 +68,9 @@ class ModelMagic implements
     public function fromArray(array $data)
     {
         foreach ($data as $key => $val) {
-            $this->set($key, $val);
+            if ($this->isNew || !in_array($key, $this->protectWriteColumns)) {
+                $this->set($key, $val);
+            }
         }
         return $this;
     }
@@ -67,7 +100,9 @@ class ModelMagic implements
     {
         $data = array();
         foreach ($this->fields as $field => $val) {
-            $data[$field] = $this->get($field);
+            if (!in_array($field, $this->protectReadColumns)) {
+                $data[$field] = $this->get($field);
+            }
         }
         return $data;
     }
@@ -254,7 +289,7 @@ class ModelMagic implements
      */
     public function serialize()
     {
-        return serialize($this->fields);
+        return serialize(array($this->fields, $this->protectReadColumns, $this->protectWriteColumns));
     }
 
     /**
@@ -268,11 +303,22 @@ class ModelMagic implements
      */
     public function unserialize($serialized)
     {
-        $this->fields = unserialize($serialized);
+        $this->protectReadColumns = $serialized[1];
+        $this->protectWriteColumns = $serialized[2];
+        $this->fromArray($serialized[0]);
     }
 
+    /**
+     * Magic method: will work only in PHP >= 5.6
+     * http://php.net/manual/en/language.oop5.magic.php#object.debuginfo
+     *
+     * @return array
+     */
     public function __debuginfo()
     {
-        return array($this->fields);
+        return array(
+            'fields' => $this->fields,
+            'protectReadColumns' => $this->protectReadColumns,
+            'protectWriteColumns' => $this->protectWriteColumns);
     }
 }
