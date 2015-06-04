@@ -7,6 +7,8 @@
 
 namespace ModelMagic\Factory;
 
+use ModelMagic\EntityManager\EntityManagerAwareInterface;
+use ModelMagic\EntityManager\EntityManagerInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -25,7 +27,11 @@ class EntityFactory
         } else {
             $entity = new $className();
         }
-
+        if ($entity instanceof EntityManagerAwareInterface) {
+            /** @var EntityManagerInterface $em */
+            $em = $serviceLocator->get('ModelMagic/EntityManager');  // todo: decouple
+            $entity->setEntityManager($em);
+        }
         if ($entity instanceof ServiceLocatorAwareInterface) {
             $entity->setServiceLocator($serviceLocator);
         }

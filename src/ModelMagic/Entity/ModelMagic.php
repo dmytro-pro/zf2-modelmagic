@@ -7,6 +7,8 @@
 
 namespace ModelMagic\Entity;
 
+use ModelMagic\EntityManager\EntityManagerAwareInterface;
+use ModelMagic\EntityManager\EntityManagerInterface;
 use Traversable;
 
 class ModelMagic implements
@@ -15,7 +17,8 @@ class ModelMagic implements
     \IteratorAggregate,
     \Serializable,
     ModelMagicInterface,
-    JsonSerializableInterface
+    JsonSerializableInterface,
+    EntityManagerAwareInterface
 {
     /**
      * Table name for this entity. Must be overridden, if EntityRepository for this entity will be used.
@@ -55,6 +58,16 @@ class ModelMagic implements
      */
     protected $isNew = true;
 
+    /**
+     * EntityManager DI.
+     *
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
+    /**
+     * @param array $data
+     */
     public function __construct(array $data)
     {
         $this->fromArray($data);
@@ -321,4 +334,22 @@ class ModelMagic implements
             'protectReadColumns' => $this->protectReadColumns,
             'protectWriteColumns' => $this->protectWriteColumns);
     }
+
+    /**
+     * @return EntityManagerInterface
+     */
+    public function getEntityManager()
+    {
+        return $this->entityManager;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @return void
+     */
+    public function setEntityManager(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
 }
