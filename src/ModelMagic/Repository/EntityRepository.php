@@ -10,6 +10,7 @@ namespace ModelMagic\Repository;
 use Doctrine\DBAL\Connection;
 use ModelMagic\Entity\ModelMagicInterface;
 use ModelMagic\EntityManager\EntityManagerInterface;
+use ModelMagic\Exception\BadMethodCallException;
 use ModelMagic\Exception\InvalidArgumentException;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -34,6 +35,11 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
     protected $entityManager;
 
     /**
+     * @var string
+     */
+    protected $primaryColumn;
+
+    /**
      * @param $entityClassName
      * @param EntityManagerInterface $entityManager
      */
@@ -54,17 +60,21 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
 
     /**
      * Returns Primary Key column name.
+     * Default is 'id', if not defined.
+     * If it is defined and equals as NULL or FALSE, operations get|update|delete will be denied.
      *
      * @return string
      */
     public function getPrimaryColumn()
     {
-        $pk = 'id';
+        if ($this->primaryColumn) {
+            return $this->primaryColumn;
+        }
         $className = $this->entityClassName;
         if (defined("$className::PRIMARY_COLUMN")) {
-            $pk = $className::PRIMARY_COLUMN;
+            $this->primaryColumn = $className::PRIMARY_COLUMN;
         }
-        return $pk;
+        return $this->primaryColumn;
     }
 
     /**
@@ -93,6 +103,11 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function get($id)
     {
+        if (!$this->getPrimaryColumn()) {
+            throw new BadMethodCallException(
+                'Operation denied for the object without primary column: use getOne() instead.'
+            );
+        }
         $qb = $this->createQueryBuilder()
             ->select('*')
             ->from($this->table)
@@ -168,6 +183,11 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function update($id, $data)
     {
+        if (!$this->getPrimaryColumn()) {
+            throw new BadMethodCallException(
+                'Operation denied for the object without primary column: use updateWhere() instead.'
+            );
+        }
         return $this->getConnection()->update($this->table, $data, array($this->getPrimaryColumn() => $id));
     }
 
@@ -209,6 +229,11 @@ class EntityRepository implements EntityRepositoryInterface, ServiceLocatorAware
      */
     public function delete($id)
     {
+        if (!$this->getPrimaryColumn()) {
+            throw new BadMethodCallException(
+                'Operation denied for the object without primary column: use deleteWhere() instead.'
+            );
+        }
         return $this->getConnection()->delete($this->table, array($this->getPrimaryColumn() => $id));
     }
 
