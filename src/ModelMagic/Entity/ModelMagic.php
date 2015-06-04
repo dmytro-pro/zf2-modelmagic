@@ -68,7 +68,7 @@ class ModelMagic implements
     /**
      * @param array $data
      */
-    public function __construct(array $data)
+    public function __construct(array $data = array())
     {
         $this->fromArray($data);
         $this->isNew = false;
