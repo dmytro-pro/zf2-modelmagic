@@ -66,7 +66,7 @@ class ModelMagic implements
     public function toArray()
     {
         $data = array();
-        foreach ($this->fields as $field) {
+        foreach ($this->fields as $field => $val) {
             $data[$field] = $this->get($field);
         }
         return $data;
