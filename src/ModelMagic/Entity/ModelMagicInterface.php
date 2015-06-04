@@ -11,6 +11,7 @@ interface ModelMagicInterface
 {
     public function get($key);
     public function set($key, $value);
+    public function remove($key);
     public function fromArray(array $data);
     public function toArray();
 }

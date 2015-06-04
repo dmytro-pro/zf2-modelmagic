@@ -16,6 +16,7 @@ interface EntityRepositoryInterface
     public function get($id);
     public function getOne($where, array $params = array());
     public function insert($data, $ignore = false);
+    public function replace($data);
     public function update($id, $data);
     public function updateWhere($data, $where, array $params = array());
     public function delete($id);

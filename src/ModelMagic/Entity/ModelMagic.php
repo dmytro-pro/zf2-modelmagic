@@ -18,7 +18,8 @@ class ModelMagic implements
     \Serializable,
     ModelMagicInterface,
     JsonSerializableInterface,
-    EntityManagerAwareInterface
+    EntityManagerAwareInterface,
+    ActiveRecordInterface
 {
     /**
      * Table name for this entity. Must be overridden, if EntityRepository for this entity will be used.
@@ -70,8 +71,7 @@ class ModelMagic implements
      */
     public function __construct(array $data = array())
     {
-        $this->fromArray($data);
-        $this->isNew = false;
+        (!empty($data)) && ($this->fromArray($data));
     }
 
     /**
@@ -82,9 +82,15 @@ class ModelMagic implements
     {
         foreach ($data as $key => $val) {
             if ($this->isNew || !in_array($key, $this->protectWriteColumns)) {
+                $this->remove($key);
+            }
+        }
+        foreach ($data as $key => $val) {
+            if ($this->isNew || !in_array($key, $this->protectWriteColumns)) {
                 $this->set($key, $val);
             }
         }
+        ($this->isNew) && ($this->isNew = false);
         return $this;
     }
 
@@ -128,7 +134,13 @@ class ModelMagic implements
      */
     public function exchangeArray($data)
     {
-        return $this->fromArray($data);
+        foreach ($data as $key => $val) {
+            if ($this->isNew || !in_array($key, $this->protectWriteColumns)) {
+                $this->set($key, $val);
+            }
+        }
+        ($this->isNew) && ($this->isNew = false);
+        return $this;
     }
 
     /**
@@ -171,6 +183,14 @@ class ModelMagic implements
     }
 
     /**
+     * @param $key
+     */
+    public function remove($key)
+    {
+        unset($this->fields[$key]);
+    }
+
+    /**
      * @param string $name
      *
      * @return mixed|null
@@ -203,7 +223,7 @@ class ModelMagic implements
      */
     public function __unset($key)
     {
-        unset($this->fields[$key]);
+        $this->remove($key);
     }
 
     /**
@@ -352,4 +372,34 @@ class ModelMagic implements
         $this->entityManager = $entityManager;
     }
 
+    /**
+     * ActiveRecord method implementation.
+     */
+    public function save()
+    {
+        $repo = $this->getEntityManager()->getRepository(get_class($this));
+        $repo->replace($this->toArray());
+        $this->reset($repo->get(static::PRIMARY_COLUMN)->toArray());
+        return $this;
+    }
+
+    /**
+     * Force redefine data (ignoring read/write constraint)
+     * Internal method, not for common use.
+     *
+     * @param array $data
+     * @return ModelMagic
+     */
+    protected function reset(array $data)
+    {
+        $this->fields = array();
+        $this->isNew = true;
+        foreach ($data as $key => $val) {
+            if ($this->isNew || !in_array($key, $this->protectWriteColumns)) {
+                $this->set($key, $val);
+            }
+        }
+        ($this->isNew) && ($this->isNew = false);
+        return $this;
+    }
 }
